@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: car_bazar_db
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: secretpassword
+      POSTGRES_DB: car_bazar
+    ports:
+      - "5433:5432"
+    volumes:
+      - car_bazar_data:/var/lib/postgresql/data
+
+volumes:
+  car_bazar_data:

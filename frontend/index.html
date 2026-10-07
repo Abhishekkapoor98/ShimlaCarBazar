@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shimla Car Bazar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans leading-normal tracking-normal">
+
+    <!-- NAVBAR -->
+    <nav class="bg-blue-800 p-4 shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-white text-2xl font-bold cursor-pointer" onclick="updateUI()">🚗 Shimla Car Bazar</h1>
+            <div id="nav-links" class="flex items-center"></div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto mt-8 p-4">
+        
+        <!-- AUTH SECTION (Login/Signup) -->
+        <div id="auth-section" class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-xl hidden border-t-4 border-blue-600">
+            <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Login / Signup</h2>
+            <input type="email" id="auth-email" placeholder="Email Address" class="w-full mb-3 p-3 border rounded bg-gray-50 focus:outline-none focus:border-blue-500">
+            <input type="password" id="auth-password" placeholder="Password" class="w-full mb-3 p-3 border rounded bg-gray-50 focus:outline-none focus:border-blue-500">
+            <select id="auth-role" class="w-full mb-5 p-3 border rounded bg-gray-50 focus:outline-none">
+                <option value="customer">Customer</option>
+                <option value="admin">Admin</option>
+            </select>
+            <div class="flex gap-3">
+                <button onclick="login()" class="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 w-full font-bold transition">Login</button>
+                <button onclick="signup()" class="bg-gray-700 text-white px-4 py-2 rounded shadow hover:bg-gray-800 w-full font-bold transition">Sign Up</button>
+            </div>
+            <p id="auth-message" class="text-sm mt-4 text-center font-bold hidden"></p>
+        </div>
+
+        <!-- PUBLIC MARKETPLACE -->
+        <div id="marketplace" class="block">
+            <div class="flex justify-between items-end mb-6">
+                <h2 class="text-3xl font-bold text-gray-800">Available Cars</h2>
+            </div>
+            
+            <div id="cars-list" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12"></div>
+
+            <!-- Sell Car Form (Customers ke liye) -->
+            <div id="sell-car-form" class="bg-white p-8 rounded-lg shadow-lg max-w-xl mx-auto hidden border-t-4 border-green-500">
+                <h3 class="text-2xl font-bold mb-2 text-green-700">Sell Your Car to Us</h3>
+                <p class="text-gray-500 mb-6 text-sm">Fill details and add photos. Our team will contact you.</p>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="text" id="prop-brand" placeholder="Car Brand (e.g., Maruti)" class="w-full mb-3 p-3 border rounded bg-gray-50">
+                    <input type="text" id="prop-model" placeholder="Car Model (e.g., Swift)" class="w-full mb-3 p-3 border rounded bg-gray-50">
+                </div>
+                
+                <input type="number" id="prop-price" placeholder="Expected Price (₹)" class="w-full mb-3 p-3 border rounded bg-gray-50">
+                <input type="tel" id="prop-phone" placeholder="Phone Number (10 digits)" class="w-full mb-4 p-3 border rounded bg-gray-50 focus:outline-none focus:border-green-500">
+                
+                <!-- MULTIPLE PHOTO UPLOAD FIELD -->
+                <div class="mb-5">
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Upload Car Photos</label>
+                    <input type="file" id="prop-images" accept="image/*" multiple class="w-full p-2 border rounded bg-gray-50 cursor-pointer text-sm">
+                    <p class="text-xs text-gray-500 mt-1">Select multiple photos (Front, Back, Interior).</p>
+                </div>
+
+                <button onclick="submitProposal()" class="bg-green-600 text-white px-4 py-3 rounded shadow-lg hover:bg-green-700 w-full font-bold text-lg transition">Submit Request</button>
+            </div>
+        </div>
+
+        <!-- MY PROPOSALS (Sirf Customers) -->
+        <div id="my-proposals" class="hidden">
+            <h2 class="text-3xl font-bold mb-6 text-gray-800">My Car Requests</h2>
+            <div id="my-proposals-list" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+        </div>
+
+        <!-- ADMIN DASHBOARD -->
+        <div id="admin" class="hidden">
+            <h2 class="text-3xl font-bold mb-6 text-gray-800">Admin Dashboard - Incoming Requests</h2>
+            <div class="bg-white rounded-lg shadow-xl overflow-hidden border border-gray-200">
+                <table class="min-w-full leading-normal">
+                    <thead>
+                        <tr>
+                            <th class="px-5 py-4 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-bold text-gray-700 uppercase">Cust ID</th>
+                            <th class="px-5 py-4 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-bold text-gray-700 uppercase">Car Info</th>
+                            <th class="px-5 py-4 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-bold text-gray-700 uppercase">Expected Price</th>
+                            <th class="px-5 py-4 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-bold text-gray-700 uppercase">Contact</th>
+                            <th class="px-5 py-4 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-bold text-gray-700 uppercase">Status</th>
+                            <th class="px-5 py-4 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-bold text-gray-700 uppercase">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="proposals-list"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        const API_URL = 'http://localhost:8080';
+        
+        let token = localStorage.getItem('token');
+        let userRole = localStorage.getItem('role');
+        let userId = localStorage.getItem('user_id');
+
+        function parseJwt(token) {
+            try { return JSON.parse(atob(token.split('.')[1])); } catch (e) { return null; }
+        }
+
+        async function fetchWithAuth(url, options = {}) {
+            if (!options.headers) options.headers = {};
+            if (token) options.headers['Authorization'] = `Bearer ${token}`;
+            return fetch(url, options);
+        }
+
+        function showMessage(msg, isError) {
+            const msgBox = document.getElementById('auth-message');
+            msgBox.innerText = msg;
+            msgBox.className = `text-sm mt-4 text-center font-bold block ${isError ? 'text-red-600' : 'text-green-600'}`;
+        }
+
+        // ================= AUTHENTICATION =================
+        async function signup() {
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+            const roleInput = document.getElementById('auth-role').value;
+
+            if(!email || !password) return showMessage("Email and Password are required!", true);
+
+            const res = await fetch(`${API_URL}/signup`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password, role: roleInput })
+            });
+
+            if (res.ok) showMessage("Account Created! Click 'Login' to continue.", false);
+            else {
+                const text = await res.text();
+                showMessage(text || "Failed to create account.", true);
+            }
+        }
+
+        async function login() {
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+            
+            if(!email || !password) return showMessage("Email and Password are required!", true);
+
+            const res = await fetch(`${API_URL}/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                token = data.token;
+                userRole = data.role;
+                userId = parseJwt(token).user_id;
+
+                localStorage.setItem('token', token);
+                localStorage.setItem('role', userRole);
+                localStorage.setItem('user_id', userId);
+                
+                updateUI();
+            } else {
+                const text = await res.text();
+                showMessage(text || "Invalid Email or Password!", true);
+            }
+        }
+
+        function logout() {
+            token = null; userRole = null; userId = null;
+            localStorage.clear();
+            updateUI();
+        }
+
+        // ================= UI ROUTING =================
+        function updateUI() {
+            document.getElementById('auth-section').classList.add('hidden');
+            document.getElementById('marketplace').classList.add('hidden');
+            document.getElementById('admin').classList.add('hidden');
+            document.getElementById('my-proposals').classList.add('hidden');
+            document.getElementById('sell-car-form').classList.add('hidden');
+            document.getElementById('auth-message').classList.add('hidden');
+            
+            const nav = document.getElementById('nav-links');
+
+            if (!token) {
+                document.getElementById('marketplace').classList.remove('hidden');
+                nav.innerHTML = `<button onclick="showSection('auth-section')" class="bg-green-500 text-white px-5 py-2 rounded shadow font-bold hover:bg-green-600 transition">Login / Sell Car</button>`;
+                loadCars();
+            } else {
+                if (userRole === 'admin') {
+                    document.getElementById('admin').classList.remove('hidden');
+                    nav.innerHTML = `
+                        <span class="text-blue-200 mr-6 font-semibold">Admin Panel</span>
+                        <button onclick="logout()" class="bg-red-500 text-white px-4 py-1.5 rounded shadow hover:bg-red-600 font-bold">Logout</button>
+                    `;
+                    loadProposals();
+                } else {
+                    document.getElementById('marketplace').classList.remove('hidden');
+                    document.getElementById('sell-car-form').classList.remove('hidden');
+                    nav.innerHTML = `
+                        <button onclick="showSection('marketplace')" class="text-white hover:text-blue-200 px-4 font-bold">Marketplace</button>
+                        <button onclick="showSection('my-proposals')" class="text-white hover:text-blue-200 px-4 font-bold">My Requests</button>
+                        <button onclick="logout()" class="bg-red-500 text-white px-4 py-1.5 ml-4 rounded shadow hover:bg-red-600 font-bold">Logout</button>
+                    `;
+                    loadCars();
+                }
+            }
+        }
+
+        function showSection(section) {
+            document.getElementById('auth-section').classList.add('hidden');
+            document.getElementById('marketplace').classList.add('hidden');
+            document.getElementById('admin').classList.add('hidden');
+            document.getElementById('my-proposals').classList.add('hidden');
+            
+            document.getElementById(section).classList.remove('hidden');
+
+            if(section === 'marketplace') loadCars();
+            if(section === 'admin') loadProposals();
+            if(section === 'my-proposals') loadMyProposals();
+        }
+
+        // ================= API CALLS & MULTI-IMAGE LOGIC =================
+        async function loadCars() {
+            const res = await fetch(`${API_URL}/cars`);
+            const cars = await res.json();
+            const container = document.getElementById('cars-list');
+            container.innerHTML = '';
+            
+            if(!cars || cars.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 col-span-3 text-center py-8">No cars available in inventory right now.</p>';
+                return;
+            }
+
+            cars.forEach(car => {
+                // Multi-Image UI Builder
+                let imagesHtml = '<div class="w-full h-48 bg-gray-300 flex items-center justify-center rounded-t-lg text-gray-500 font-bold">No Image</div>';
+                
+                if (car.image_urls && car.image_urls !== "") {
+                    const urls = car.image_urls.split(",");
+                    imagesHtml = `<img src="${urls[0]}" class="w-full h-48 object-cover rounded-t-lg border-b border-gray-200">`; // Badi Image
+                    
+                    if (urls.length > 1) { // Agar 1 se zyada hain, toh mini gallery
+                        imagesHtml += `<div class="flex gap-2 p-2 bg-gray-100 overflow-x-auto">`;
+                        for(let i = 1; i < urls.length; i++) {
+                            imagesHtml += `<img src="${urls[i]}" class="h-14 w-20 object-cover rounded shadow-sm border border-gray-300 flex-shrink-0">`;
+                        }
+                        imagesHtml += `</div>`;
+                    }
+                }
+
+                container.innerHTML += `
+                    <div class="bg-white rounded-lg shadow-md border-t-4 border-blue-600 hover:shadow-xl transition transform hover:-translate-y-1 overflow-hidden flex flex-col justify-between">
+                        <div>
+                            ${imagesHtml}
+                            <div class="p-5">
+                                <div class="flex justify-between items-start">
+                                    <h3 class="text-xl font-extrabold text-gray-800">${car.brand} ${car.model}</h3>
+                                    <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded font-bold uppercase">${car.condition_type}</span>
+                                </div>
+                                <p class="text-green-600 font-black text-2xl mt-4">₹${car.price.toLocaleString('en-IN')}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        async function submitProposal() {
+            const brand = document.getElementById('prop-brand').value;
+            const model = document.getElementById('prop-model').value;
+            const price = parseInt(document.getElementById('prop-price').value);
+            const phone = document.getElementById('prop-phone').value;
+            const imageFiles = document.getElementById('prop-images').files;
+
+            if(!brand || !model || !price || !phone || imageFiles.length === 0) {
+                return alert("Please fill all fields and select at least one photo!");
+            }
+            if(phone.length < 10) return alert("Please enter a valid phone number.");
+
+            // 1. Pehle saari images upload karein
+            const formData = new FormData();
+            for(let i = 0; i < imageFiles.length; i++) {
+                formData.append("images", imageFiles[i]);
+            }
+
+            const uploadRes = await fetchWithAuth(`${API_URL}/upload`, {
+                method: 'POST',
+                body: formData
+            });
+
+            if(!uploadRes.ok) return alert("Failed to upload images. Server error.");
+            const uploadData = await uploadRes.json();
+            
+            // Array of URLs ko Comma-Separated String banayein
+            const imageUrlsString = uploadData.urls.join(",");
+
+            // 2. Proposal form database me bhejein
+            const payload = { 
+                customer_id: parseInt(userId), 
+                car_brand: brand, 
+                car_model: model, 
+                expected_price: price,
+                phone_number: phone,
+                image_urls: imageUrlsString
+            };
+
+            const res = await fetchWithAuth(`${API_URL}/proposals`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if(res.ok) {
+                alert("Request Submitted Successfully! We will call you soon.");
+                document.getElementById('prop-brand').value = '';
+                document.getElementById('prop-model').value = '';
+                document.getElementById('prop-price').value = '';
+                document.getElementById('prop-phone').value = '';
+                document.getElementById('prop-images').value = ''; // File input clear
+                showSection('my-proposals');
+            } else {
+                alert("Error submitting request.");
+            }
+        }
+
+        async function loadProposals() {
+            const res = await fetchWithAuth(`${API_URL}/proposals`);
+            const proposals = await res.json();
+            const container = document.getElementById('proposals-list');
+            container.innerHTML = '';
+
+            if(!proposals || proposals.length === 0) {
+                container.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-gray-500">No incoming requests.</td></tr>';
+                return;
+            }
+
+            proposals.forEach(p => {
+                const actionBtn = p.status === 'pending' 
+                    ? `<button onclick="approveProposal(${p.id})" class="bg-blue-600 text-white px-4 py-1.5 rounded shadow hover:bg-blue-800 font-bold text-sm">Approve</button>`
+                    : `<span class="text-gray-400 font-bold px-2">✓ Approved</span>`;
+                
+                const phoneDisplay = p.phone_number 
+                    ? `<a href="tel:${p.phone_number}" class="text-blue-600 hover:text-blue-800 font-bold flex items-center gap-1">📞 ${p.phone_number}</a>`
+                    : `<span class="text-gray-400 text-sm">Not Provided</span>`;
+
+                container.innerHTML += `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-5 py-4 border-b text-sm"><p class="text-gray-900 font-black">#${p.customer_id}</p></td>
+                        <td class="px-5 py-4 border-b text-sm"><p class="text-gray-900 font-bold">${p.car_brand} ${p.car_model}</p></td>
+                        <td class="px-5 py-4 border-b text-sm"><p class="text-gray-900 font-bold">₹${p.expected_price.toLocaleString('en-IN')}</p></td>
+                        <td class="px-5 py-4 border-b text-sm">${phoneDisplay}</td>
+                        <td class="px-5 py-4 border-b text-sm"><span class="capitalize px-3 py-1 rounded-full text-xs font-bold ${p.status==='pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}">${p.status}</span></td>
+                        <td class="px-5 py-4 border-b text-sm">${actionBtn}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function loadMyProposals() {
+            const res = await fetchWithAuth(`${API_URL}/proposals`);
+            const proposals = await res.json();
+            const container = document.getElementById('my-proposals-list');
+            container.innerHTML = '';
+
+            if(!proposals || proposals.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 col-span-2 text-center py-8">You have not submitted any car requests yet.</p>';
+                return;
+            }
+
+            proposals.forEach(p => {
+                // Pehli image nikal kar customer ko dikhao
+                let imgThumbnail = '';
+                if(p.image_urls && p.image_urls !== "") {
+                    imgThumbnail = `<img src="${p.image_urls.split(',')[0]}" class="h-20 w-32 object-cover rounded border border-gray-300 ml-4">`;
+                }
+
+                container.innerHTML += `
+                    <div class="bg-white p-6 rounded-lg shadow-md border-l-4 ${p.status==='pending' ? 'border-yellow-500' : 'border-green-500'} flex justify-between">
+                        <div>
+                            <div class="flex items-center mb-2 gap-3">
+                                <h3 class="text-xl font-bold text-gray-800">${p.car_brand} ${p.car_model}</h3>
+                                <span class="capitalize px-3 py-1 rounded-full text-xs font-bold ${p.status==='pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}">${p.status}</span>
+                            </div>
+                            <p class="text-gray-600 mt-2 font-semibold">Expected: <span class="text-gray-900">₹${p.expected_price.toLocaleString('en-IN')}</span></p>
+                        </div>
+                        ${imgThumbnail}
+                    </div>
+                `;
+            });
+        }
+
+        async function approveProposal(id) {
+            if(!confirm("Approve this car? It will be added to the marketplace with its photos.")) return;
+            
+            const res = await fetchWithAuth(`${API_URL}/proposals/${id}/approve`, { method: 'PUT' });
+            if(res.ok) {
+                alert("Proposal Approved!");
+                loadProposals();
+            } else {
+                alert("Failed to approve proposal.");
+            }
+        }
+
+        // Initialize App
+        updateUI();
+    </script>
+</body>
+</html>
